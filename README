@@ -1,0 +1,177 @@
+# Data Pusher - Node.js Express API
+
+A complete Node.js + Express application to receive JSON data, manage accounts, destinations, members, logs, and forward data to webhooks.
+
+---
+
+## 📁 Project Structure
+
+data-pusher-app/
+├─ src/
+│ ├─ config/ # Database & environment config
+│ │ └─ config.cjs
+│ ├─ controllers/ # Controllers for APIs
+│ ├─ middlewares/ # Auth, validation, caching, rate limiting
+│ ├─ migrations/ # Sequelize migration files
+│ ├─ models/ # Sequelize models
+│ ├─ routes/ # Express routes
+│ ├─ workers/ # Background workers
+│ └─ queues/ # Bull queues & dashboard
+├─ .env.example # Example environment variables
+├─ package.json
+├─ README.md
+└─ DataPusherAPI.json # API documentation (Postman)
+
+yaml
+Copy code
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1️⃣ Clone the repository
+
+```bash
+git clone <your-private-github-url>
+cd data-pusher-app
+2️⃣ Install dependencies
+bash
+Copy code
+npm install
+3️⃣ Setup environment variables
+Create a .env file in the root directory based on .env.example:
+
+ini
+Copy code
+DB_USER=your_db_user
+DB_PASS=your_db_password
+DB_NAME=your_db_name
+DB_NAME_TEST=your_test_db_name
+DB_HOST=localhost
+PORT=5000
+JWT_SECRET=your_jwt_secret
+4️⃣ Run migrations
+Ensure PostgreSQL is running. Then run:
+
+bash
+Copy code
+npx sequelize db:migrate --config src/config/config.cjs
+This will create all necessary tables:
+
+Users
+
+Accounts
+
+Destinations
+
+AccountMembers
+
+Logs
+
+5️⃣ Start the server
+bash
+Copy code
+npm run dev
+Server will run at: http://localhost:5000
+
+🔑 API Endpoints
+All endpoints are documented in DataPusherAPI.json for easy import in Postman.
+
+Key Endpoints:
+
+Authentication
+POST /api/auth/signup → Signup
+
+POST /api/auth/login → Login
+
+Accounts
+POST /api/accounts → Create Account
+
+GET /api/accounts → Get All Accounts
+
+GET /api/accounts/:id → Get Account by ID
+
+PUT /api/accounts/:id → Update Account
+
+DELETE /api/accounts/:id → Delete Account
+
+GET /api/accounts/search?query= → Search Accounts
+
+Destinations
+CRUD + search endpoints (Create, Update, Delete, Get, Search)
+
+Account Members
+Add, get, delete, search members
+
+Logs
+GET /api/logs → Get all logs
+
+GET /api/logs/search → Search logs (Admin only)
+
+Incoming Data
+POST /server/incoming_data → Receive & forward data via webhooks
+
+📦 Features
+JWT Authentication & Role-based Authorization
+
+Validation & Error Handling
+
+Sequelize ORM with PostgreSQL
+
+Background job processing with Bull
+
+Rate Limiting per account
+
+Caching for GET endpoints
+
+Full API documentation (Postman JSON)
+
+⚡ Usage
+Signup as Admin → /api/auth/signup
+
+Login to get JWT token → /api/auth/login
+
+Use token in Authorization header for protected routes:
+
+makefile
+Copy code
+Authorization: Bearer <JWT_TOKEN>
+Add accounts, destinations, members, send data, and check logs.
+
+🧾 Documentation
+DataPusherAPI.json → Import into Postman for full API documentation.
+
+Includes endpoints, headers, request/response examples, and error codes.
+
+💻 Testing
+Manual testing has been completed for all endpoints using Postman with the provided JSON collection.
+
+Automated tests are pending and will be added in a future update.
+
+Example environment variables in Postman:
+
+token → JWT token after login
+
+app_secret_token → Account secret token for incoming data
+
+event_id → Optional event ID for incoming data
+
+📝 Notes
+Ensure PostgreSQL is installed and running.
+
+All migrations must be run before starting the server.
+
+The server uses ES modules ("type": "module" in package.json).
+
+📧 Submission
+Push entire project to a private GitHub repo including:
+
+src/ folder with all code
+
+.env.example
+
+migrations/
+
+DataPusherAPI.json
+
+README.md

@@ -1,0 +1,149 @@
+{
+  "info": {
+    "name": "Data Pusher Full API",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-1234567890ab",
+    "description": "Complete API collection for Data Pusher project with all endpoints, headers, requests, responses, and error codes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Signup",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role_name\": \"Admin\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": { "raw": "http://localhost:5000/api/auth/signup", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api","auth","signup"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"message\": \"User created successfully\",\n  \"user\": { \"id\": 1, \"email\": \"john@example.com\", \"role_name\": \"Admin\" }\n}" },
+        { "name": "Error - Validation", "body": "{\n  \"success\": false,\n  \"message\": \"Validation error: email is required\"\n}" }
+      ]
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": { "raw": "http://localhost:5000/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api","auth","login"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"token\": \"<JWT_TOKEN>\",\n  \"role_name\": \"Admin\"\n}" },
+        { "name": "Error - Invalid credentials", "body": "{\n  \"success\": false,\n  \"message\": \"Invalid email or password\"\n}" }
+      ]
+    },
+    {
+      "name": "Accounts - Create",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }],
+        "body": { "mode": "raw", "raw": "{\n  \"account_name\": \"My Account\",\n  \"app_secret_token\": \"secret123\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "http://localhost:5000/api/accounts", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api","accounts"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"account\": { \"id\": 1, \"account_name\": \"My Account\", \"app_secret_token\": \"secret123\" }\n}" },
+        { "name": "Error - Unauthorized", "body": "{\n  \"success\": false,\n  \"message\": \"Unauthorized\"\n}" }
+      ]
+    },
+    {
+      "name": "Accounts - Get All",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }],
+        "url": { "raw": "http://localhost:5000/api/accounts", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api","accounts"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"data\": [ { \"id\": 1, \"account_name\": \"My Account\" } ]\n}" }
+      ]
+    },
+    {
+      "name": "Accounts - Get By ID",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }],
+        "url": { "raw": "http://localhost:5000/api/accounts/1", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api","accounts","1"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"data\": { \"id\": 1, \"account_name\": \"My Account\" }\n}" }
+      ]
+    },
+    {
+      "name": "Accounts - Update",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }],
+        "body": { "mode": "raw", "raw": "{ \"account_name\": \"Updated Account\" }", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "http://localhost:5000/api/accounts/1", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api","accounts","1"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"data\": { \"id\": 1, \"account_name\": \"Updated Account\" }\n}" }
+      ]
+    },
+    {
+      "name": "Accounts - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }],
+        "url": { "raw": "http://localhost:5000/api/accounts/1", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api","accounts","1"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"message\": \"Account deleted successfully\"\n}" }
+      ]
+    },
+    {
+      "name": "Destinations - Create",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }],
+        "body": { "mode": "raw", "raw": "{\n  \"account_id\": 1,\n  \"url\": \"https://example.com/webhook\",\n  \"method\": \"POST\",\n  \"headers\": { \"Authorization\": \"Bearer XYZ\" }\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "http://localhost:5000/api/destinations", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api","destinations"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"data\": { \"id\": 1, \"url\": \"https://example.com/webhook\" }\n}" },
+        { "name": "Error - Validation", "body": "{\n  \"success\": false,\n  \"message\": \"Validation error\"\n}" }
+      ]
+    },
+    {
+      "name": "Incoming Data - Send",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "CL-X-TOKEN", "value": "{{app_secret_token}}", "type": "text" },
+          { "key": "CL-X-EVENT-ID", "value": "{{event_id}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"user\": \"John Doe\",\n  \"email\": \"john@example.com\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "http://localhost:5000/server/incoming_data", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["server","incoming_data"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"message\": \"Data received and queued for destinations\",\n  \"event_id\": \"<EVENT_ID>\"\n}" },
+        { "name": "Error - Invalid Token", "body": "{\n  \"success\": false,\n  \"message\": \"Invalid CL-X-TOKEN\"\n}" },
+        { "name": "Error - Empty Body", "body": "{\n  \"success\": false,\n  \"message\": \"Request body cannot be empty\"\n}" }
+      ]
+    },
+    {
+      "name": "Logs - Get All",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }],
+        "url": { "raw": "http://localhost:5000/api/logs", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api","logs"] }
+      },
+      "response": [
+        { "name": "Success", "body": "{\n  \"success\": true,\n  \"data\": [ { \"id\": 1, \"status\": \"success\" } ]\n}" }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "token", "value": "" },
+    { "key": "app_secret_token", "value": "" },
+    { "key": "event_id", "value": "123e4567-e89b-12d3-a456-426614174000" }
+  ]
+}

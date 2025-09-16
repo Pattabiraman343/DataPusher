@@ -72,3 +72,13 @@ export const handleIncomingData = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error: " + err.message });
   }
 };
+export const getDestinationById = async (req, res) => {
+  try {
+    const destination = await Destination.findByPk(req.params.id);
+    if (!destination) return res.status(404).json({ success: false, message: "Destination not found" });
+
+    res.json({ success: true, destination });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

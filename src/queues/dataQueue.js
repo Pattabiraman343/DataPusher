@@ -7,7 +7,6 @@ const redisConfig = {
   password: process.env.REDIS_PASSWORD || undefined, // optional password
 };
 
-
 // Create queue with options
 const dataQueue = new Bull("dataQueue", {
   redis: redisConfig,

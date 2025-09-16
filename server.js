@@ -7,7 +7,7 @@ import { authenticate, authorize } from "./src/middlewares/auth.middleware.js";
 import accountRoutes from "./src/routes/account.routes.js";
 import destinationRoutes from "./src/routes/destination.routes.js";
 import accountMemberRoutes from "./src/routes/accountMember.routes.js";
-import logRoutes from "./src/routes/log.routes.js";
+// import logRoutes from "./src/routes/log.routes.js";
 import incomingDataRoutes from "./src/routes/incoming.routes.js";
 import "./src/workers/dataWorker.js"; // start the worker
 import { handleIncomingData } from "./src/controllers/incomingData.controller.js";
@@ -34,16 +34,17 @@ app.post(
   perAccountLimiterMiddleware,
   incomingDataLimiter,
   validateIncomingData,
-  handleIncomingData
+  handleIncomingData,incomingDataRoutes
 );
 app.use(errorHandler);
+// app.use("/server/incoming_data", incomingDataRoutes);
 
 // Authenticated routes
 app.use("/api/auth", authRoutes);
 app.use("/api/accounts", authenticate, accountRoutes);
 app.use("/api/destinations", authenticate, destinationRoutes);
 app.use("/api/members", authenticate, authorize(["Admin"]), accountMemberRoutes);
-app.use("/api/logs", logRoutes);
+// app.use("/api/logs", logRoutes);
 app.use("/api", incomingDataRoutes);
 
 // Export app for tests

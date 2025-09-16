@@ -1,53 +1,91 @@
+// src/tests/account.test.js
 import request from "supertest";
 import app from "../../server.js";
-import { sequelize, Account, Role, User } from "../models/Index.js";
-import { closeDb } from "./setup.js";
+import { sequelize, User, Role, Account } from "../models/Index.js";
 
-let token;
+let authToken;
 
-describe("Account CRUD", () => {
-  beforeAll(async () => {
-    await sequelize.sync({ force: true });
-    await Role.bulkCreate([{ role_name: "Admin" }, { role_name: "User" }]);
+beforeAll(async () => {
+  // 🔹 Sync DB
+  await sequelize.sync({ force: true });
 
-    // Signup + Login Admin
-    await request(app).post("/api/auth/signup").send({
-      email: "admin@test.com",
-      password: "123456",
+  // 🔹 Create a Role
+  await Role.create({ role_name: "Admin" });
+
+  // 🔹 Create a test user
+  const userRes = await request(app)
+    .post("/api/auth/signup")
+    .send({
+      email: "raman@test.com",
+      password: "password123",
       role_name: "Admin",
     });
 
-    const res = await request(app).post("/api/auth/login").send({
-      email: "admin@test.com",
-      password: "123456",
+  expect(userRes.body.success).toBe(true);
+
+  // 🔹 Login to get token
+  const loginRes = await request(app)
+    .post("/api/auth/login")
+    .send({
+      email: "raman@test.com",
+      password: "password123",
     });
 
-    token = res.body.data.token;
-  });
+  expect(loginRes.body.success).toBe(true);
+  authToken = loginRes.body.data.token;
+});
 
-  afterAll(async () => {
-    await closeDb();
-  });
+afterAll(async () => {
+  // Close DB connection to prevent Jest open handles
+  await sequelize.close();
+});
 
-  it("should create a new account", async () => {
+describe("Account CRUD", () => {
+  let accountId;
+
+  test("should create a new account", async () => {
     const res = await request(app)
       .post("/api/accounts")
-      .set("Authorization", `Bearer ${token}`)
-      .send({ account_name: "Test Account", created_by: 1, updated_by: 1 });
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({
+        account_name: "Test Account",
+        website: "https://example.com",
+      });
 
-    expect(res.statusCode).toBe(201); // ✅ Corrected
+    expect(res.statusCode).toBe(201);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.account_name).toBe("Test Account");
+    expect(res.body.data).toHaveProperty("id");
+
+    accountId = res.body.data.id;
   });
 
-  it("should get accounts list", async () => {
+  test("should get accounts list", async () => {
     const res = await request(app)
       .get("/api/accounts")
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `Bearer ${authToken}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body.data.length).toBeGreaterThan(0);
+    expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test("should update an account", async () => {
+    const res = await request(app)
+      .put(`/api/accounts/${accountId}`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ account_name: "Updated Account" });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.account_name).toBe("Updated Account");
+  });
+
+  test("should delete an account", async () => {
+    const res = await request(app)
+      .delete(`/api/accounts/${accountId}`)
+      .set("Authorization", `Bearer ${authToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
   });
 });

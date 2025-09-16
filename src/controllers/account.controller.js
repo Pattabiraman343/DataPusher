@@ -1,5 +1,6 @@
-import { Account, Destination, AccountMember } from "../models/Index.js";
+import { Account, Destination, AccountMember, User } from "../models/Index.js";
 import { createLog } from "./log.controller.js";
+import { Op } from "sequelize";
 
 // Create Account (Admin Only)
 export const createAccount = async (req, res) => {
@@ -13,23 +14,24 @@ export const createAccount = async (req, res) => {
       updated_by: req.user.id,
     });
 
-    // Log creation
     await createLog(
       req.user.id,
       "CREATE",
       "Account",
       account.id,
       { account_name, website },
-      account.id, // account_id
-      null // destination_id
+      account.id,
+      null
     );
 
-    res.json({ success: true, message: "Account created", account });
+    // ✅ Return 201 and `data` key
+    res.status(201).json({ success: true, data: account });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-// Get All Accounts (Admin can see all, normal user can see assigned accounts)
+
+// Get All Accounts
 export const getAccounts = async (req, res) => {
   try {
     let accounts;
@@ -47,7 +49,8 @@ export const getAccounts = async (req, res) => {
       });
     }
 
-    res.json({ success: true, accounts });
+    // ✅ Wrap in `data` key
+    res.status(200).json({ success: true, data: accounts });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -58,13 +61,14 @@ export const getAccountById = async (req, res) => {
   try {
     const account = await Account.findByPk(req.params.id);
     if (!account) return res.status(404).json({ success: false, message: "Account not found" });
-    res.json({ success: true, account });
+
+    res.status(200).json({ success: true, data: account });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// Update Account (Admin Only)
+// Update Account
 export const updateAccount = async (req, res) => {
   try {
     const { account_name, website } = req.body;
@@ -79,7 +83,6 @@ export const updateAccount = async (req, res) => {
 
     await account.save();
 
-    // Log update
     await createLog(
       req.user.id,
       "UPDATE",
@@ -90,12 +93,13 @@ export const updateAccount = async (req, res) => {
       null
     );
 
-    res.json({ success: true, message: "Account updated", account });
+    res.status(200).json({ success: true, data: account });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-// Delete Account (Admin Only)
+
+// Delete Account
 export const deleteAccount = async (req, res) => {
   try {
     const account = await Account.findByPk(req.params.id);
@@ -103,13 +107,11 @@ export const deleteAccount = async (req, res) => {
 
     const accountData = { account_name: account.account_name, website: account.website };
 
-    // Delete related Destinations & AccountMembers
     await Destination.destroy({ where: { account_id: account.id } });
     await AccountMember.destroy({ where: { account_id: account.id } });
 
     await account.destroy();
 
-    // Log deletion
     await createLog(
       req.user.id,
       "DELETE",
@@ -120,18 +122,19 @@ export const deleteAccount = async (req, res) => {
       null
     );
 
-    res.json({ success: true, message: "Account deleted successfully" });
+    res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
-};export const searchAccounts = async (req, res) => {
+};
+
+// Search Accounts
+export const searchAccounts = async (req, res) => {
   try {
     const { name, website, created_by, start_date, end_date } = req.query;
-
-    // Build dynamic query
     const where = {};
 
-    if (name) where.account_name = { [Op.iLike]: `%${name}%` }; // case-insensitive search
+    if (name) where.account_name = { [Op.iLike]: `%${name}%` };
     if (website) where.website = { [Op.iLike]: `%${website}%` };
     if (created_by) where.created_by = created_by;
     if (start_date || end_date) {
@@ -151,7 +154,7 @@ export const deleteAccount = async (req, res) => {
       order: [["created_at", "DESC"]],
     });
 
-    res.json({ success: true, data: accounts });
+    res.status(200).json({ success: true, data: accounts });
   } catch (err) {
     console.error("Error searching accounts:", err.message);
     res.status(500).json({ success: false, message: "Server Error" });

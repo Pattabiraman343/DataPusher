@@ -5,7 +5,7 @@ import axios from "axios";
 import Bottleneck from "bottleneck";
 
 // Max parallel jobs in Bull queue
-const MAX_CONCURRENCY = 5;
+const MAX_CONCURRENCY = 2;
 
 // 🔹 Create per-destination limiters
 const limiters = {};
@@ -13,7 +13,7 @@ const getLimiter = (destinationId) => {
   if (!limiters[destinationId]) {
     limiters[destinationId] = new Bottleneck({
       maxConcurrent: 1,  // only 1 request at a time per destination
-      minTime: 1000,     // 1 request per second (adjust based on remote API)
+      minTime: 5000,     // 1 request per second (adjust based on remote API)
     });
   }
   return limiters[destinationId];

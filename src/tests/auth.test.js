@@ -1,7 +1,9 @@
 // src/tests/auth.test.js
 import request from "supertest";
 import app from "../../server.js";
-import { sequelize, User, Role } from "../models/Index.js";
+import { sequelize, Role, User } from "../models/Index.js";
+
+let token;
 
 beforeAll(async () => {
   // Reset DB
@@ -19,8 +21,6 @@ afterAll(async () => {
 });
 
 describe("Auth Routes", () => {
-  let token;
-
   test("should signup a new Admin user", async () => {
     const res = await request(app)
       .post("/api/auth/signup")
@@ -30,7 +30,7 @@ describe("Auth Routes", () => {
         role_name: "Admin",
       });
 
-    expect(res.statusCode).toBe(201);  // Must match your controller response
+    expect(res.statusCode).toBe(201);  // Match your controller
     expect(res.body.success).toBe(true);
     expect(res.body.data.email).toBe("admin@test.com");
     expect(res.body.data.token).toBeDefined();
@@ -44,11 +44,15 @@ describe("Auth Routes", () => {
         password: "123456",
       });
 
+    if (!res.body.data?.token) console.log("Login failed:", res.body);
+
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.token).toBeDefined();
 
     token = res.body.data.token;
-    global.token = token; // make it available for Account tests
+    global.token = token; // make token available to other tests
   });
 });
+
+export { token };

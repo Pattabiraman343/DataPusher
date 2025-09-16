@@ -1,5 +1,8 @@
 import Destination from "../models/Destination.js";
 import { createLog } from "./log.controller.js";
+import { Op } from "sequelize";
+import Account from "../models/Account.js";
+import Log from "../models/Log.js";
 
 // Create Destination
 export const createDestination = async (req, res) => {
@@ -8,7 +11,6 @@ export const createDestination = async (req, res) => {
 
     const destination = await Destination.create({ account_id, url, method, headers });
 
-    // Log creation
     await createLog(
       req.user.id,
       "CREATE",
@@ -19,7 +21,7 @@ export const createDestination = async (req, res) => {
       destination.id
     );
 
-    res.json({ success: true, destination });
+    res.status(201).json({ success: true, data: destination }); // ✅ 201
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -29,19 +31,7 @@ export const createDestination = async (req, res) => {
 export const getDestinations = async (req, res) => {
   try {
     const destinations = await Destination.findAll();
-    res.json({ success: true, destinations });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
-// Get Destination by ID
-export const getDestinationById = async (req, res) => {
-  try {
-    const destination = await Destination.findByPk(req.params.id);
-    if (!destination) return res.status(404).json({ success: false, message: "Destination not found" });
-
-    res.json({ success: true, destination });
+    res.status(200).json({ success: true, data: destinations }); // ✅ key: data
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -56,9 +46,8 @@ export const updateDestination = async (req, res) => {
 
     const oldData = { url: destination.url, method: destination.method, headers: destination.headers };
 
-    await destination.update({ url, method, headers });
+    await destination.update({ url: url || destination.url, method: method || destination.method, headers: headers || destination.headers });
 
-    // Log update
     await createLog(
       req.user.id,
       "UPDATE",
@@ -69,7 +58,7 @@ export const updateDestination = async (req, res) => {
       destination.id
     );
 
-    res.json({ success: true, destination });
+    res.status(200).json({ success: true, data: destination });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -81,32 +70,33 @@ export const deleteDestination = async (req, res) => {
     const destination = await Destination.findByPk(req.params.id);
     if (!destination) return res.status(404).json({ success: false, message: "Destination not found" });
 
-    const destData = { account_id: destination.account_id, url: destination.url, method: destination.method, headers: destination.headers };
+    // Delete related logs first to avoid FK error
+    await Log.destroy({ where: { destination_id: destination.id } });
 
     await destination.destroy();
 
-    // Log deletion
     await createLog(
       req.user.id,
       "DELETE",
       "Destination",
       destination.id,
-      destData,
+      { account_id: destination.account_id, url: destination.url, method: destination.method, headers: destination.headers },
       destination.account_id,
       destination.id
     );
 
-    res.json({ success: true, message: "Destination deleted" });
+    res.status(200).json({ success: true, message: "Destination deleted" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// Search Destinations
 export const searchDestinations = async (req, res) => {
   try {
     const { url, method, account_id, start_date, end_date } = req.query;
 
     const where = {};
-
     if (url) where.url = { [Op.iLike]: `%${url}%` };
     if (method) where.method = method.toUpperCase();
     if (account_id) where.account_id = account_id;
@@ -122,9 +112,19 @@ export const searchDestinations = async (req, res) => {
       order: [["created_at", "DESC"]],
     });
 
-    res.json({ success: true, data: destinations });
+    res.status(200).json({ success: true, data: destinations });
   } catch (err) {
     console.error("Error searching destinations:", err.message);
     res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+export const getDestinationById = async (req, res) => {
+  try {
+    const destination = await Destination.findByPk(req.params.id);
+    if (!destination) return res.status(404).json({ success: false, message: "Destination not found" });
+
+    res.json({ success: true, destination });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
